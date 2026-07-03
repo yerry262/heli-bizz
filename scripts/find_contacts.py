@@ -28,6 +28,8 @@ COMPANY_CODES = {"2", "3", "4", "7", "8", "9"}
 
 
 def wanted(e: dict, segment: str) -> bool:
+    if segment == "ems":
+        return e.get("is_ems") == 1
     if segment == "statelocal":
         return e.get("is_state_local") == 1
     if segment == "gov":

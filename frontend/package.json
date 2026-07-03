@@ -1,0 +1,18 @@
+{
+  "name": "heli-bizz-frontend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "esbuild src/main.jsx --bundle --minify --outfile=../dashboard/app.js --define:process.env.NODE_ENV='\"production\"' && cp src/styles.css ../dashboard/styles.css && cp src/index.html ../dashboard/index.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "esbuild": "^0.28.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  }
+}

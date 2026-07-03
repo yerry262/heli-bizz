@@ -1,0 +1,4 @@
+data/cache/
+data/heli.db
+frontend/node_modules/
+__pycache__/

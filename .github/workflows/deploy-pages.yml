@@ -39,12 +39,17 @@ jobs:
           npm run build
 
       - name: Assemble site
-        # The app fetches ../data/entities.json; with dashboard files at the
-        # site root, that resolves to /data/entities.json.
+        # Dashboard files go to the site root; the app fetches ./data/entities.json.
+        # Cache-bust app.js/styles.css with the commit SHA so browsers (esp. iOS
+        # Safari) never serve a stale bundle after a deploy.
         run: |
           mkdir -p site/data
           cp dashboard/index.html dashboard/app.js dashboard/styles.css site/
           cp data/entities.json site/data/
+          V="${GITHUB_SHA::8}"
+          sed -i "s/app\.js/app.js?v=$V/; s/styles\.css/styles.css?v=$V/" site/index.html
+          echo "Cache-busted assets with v=$V"
+          cat site/index.html
 
       - uses: actions/upload-pages-artifact@v3
         with:

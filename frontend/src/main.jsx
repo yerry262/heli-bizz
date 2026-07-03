@@ -122,6 +122,58 @@ function BarChart({ title, data, selected, onSelect, labelW = 34, truncate = 0 }
   );
 }
 
+/* US tile-grid layout [row, col] — recognizable cartogram, no external map data */
+const STATE_GRID = {
+  AK: [0, 0], ME: [0, 10],
+  VT: [1, 9], NH: [1, 10],
+  WA: [2, 0], ID: [2, 1], MT: [2, 2], ND: [2, 3], MN: [2, 4], WI: [2, 5], MI: [2, 6], NY: [2, 8], MA: [2, 9], RI: [2, 10],
+  OR: [3, 0], NV: [3, 1], WY: [3, 2], SD: [3, 3], IA: [3, 4], IL: [3, 5], IN: [3, 6], OH: [3, 7], PA: [3, 8], NJ: [3, 9], CT: [3, 10],
+  CA: [4, 0], UT: [4, 1], CO: [4, 2], NE: [4, 3], MO: [4, 4], KY: [4, 5], WV: [4, 6], VA: [4, 7], MD: [4, 8], DE: [4, 9],
+  AZ: [5, 1], NM: [5, 2], KS: [5, 3], AR: [5, 4], TN: [5, 5], NC: [5, 6], SC: [5, 7], DC: [5, 8],
+  OK: [6, 3], LA: [6, 4], MS: [6, 5], AL: [6, 6], GA: [6, 7],
+  HI: [7, 0], TX: [7, 3], FL: [7, 8],
+};
+
+function HeatMap({ counts, selected, onSelect }) {
+  const [hover, setHover] = useState(null);
+  const codes = Object.keys(STATE_GRID);
+  const max = Math.max(1, ...codes.map((s) => counts[s] || 0));
+  const cell = 32, gap = 3, cols = 11, rows = 8;
+  const W = cols * (cell + gap) - gap, H = rows * (cell + gap) - gap;
+  const active = hover || selected;
+  return (
+    <div className="chart-card">
+      <div className="chart-title">
+        Heat map — by state
+        {active && <span className="heat-badge">{active}: {fmtNum(counts[active] || 0)}</span>}
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Helicopter heat map by state">
+        {codes.map((st) => {
+          const [r, c] = STATE_GRID[st];
+          const n = counts[st] || 0;
+          const t = n ? 0.14 + 0.86 * Math.sqrt(n / max) : 0;
+          const sel = selected === st;
+          return (
+            <g key={st} transform={`translate(${c * (cell + gap)},${r * (cell + gap)})`}
+              style={{ cursor: "pointer" }}
+              onMouseEnter={() => setHover(st)} onMouseLeave={() => setHover(null)}
+              onClick={() => onSelect(sel ? "" : st)}>
+              <rect width={cell} height={cell} rx="4"
+                className={`heat ${sel ? "heat-sel" : ""}`}
+                style={{ fill: "var(--amber)", fillOpacity: t }} />
+              <text x={cell / 2} y={n ? cell / 2 - 4 : cell / 2} className="heat-code"
+                textAnchor="middle" dominantBaseline="central">{st}</text>
+              {n ? <text x={cell / 2} y={cell / 2 + 7} className="heat-n"
+                textAnchor="middle" dominantBaseline="central">{n}</text> : null}
+            </g>
+          );
+        })}
+      </svg>
+      <div className="chart-hint">{selected ? `Filtering: ${selected} — click again to clear` : "Reflects the filters below · click a state to filter the table"}</div>
+    </div>
+  );
+}
+
 const topCounts = (rows, keyFn, n) => {
   const counts = new Map();
   for (const r of rows) {
@@ -356,8 +408,32 @@ function App() {
     return rows;
   }, [entities, chip, stateSel, mfrSel, q]);
 
-  const stateData = useMemo(() => topCounts(entities, (e) => e.state, 15), [entities]);
   const mfrData = useMemo(() => topCounts(entities, (e) => e.mfr, 12), [entities]);
+
+  // Heat map counts by state — reflects chip + manufacturer + search, but NOT
+  // the state selection itself, so the whole map stays visible to click into.
+  const heatCounts = useMemo(() => {
+    const needle = q.trim().toUpperCase();
+    const counts = {};
+    for (const e of entities) {
+      if (chip !== "all" && !chipTest(chip, e)) continue;
+      if (mfrSel && e.mfr !== mfrSel) continue;
+      if (needle && !(
+        (e.registrant_name && e.registrant_name.includes(needle)) ||
+        (e.city && e.city.includes(needle)) ||
+        (e.n_number && e.n_number.includes(needle)))) continue;
+      const s = e.state || "??";
+      counts[s] = (counts[s] || 0) + 1;
+    }
+    return counts;
+  }, [entities, chip, mfrSel, q]);
+
+  // Top locations (city, state) for the fully-filtered set — so selecting a
+  // state on the map narrows this to that state's cities.
+  const cityData = useMemo(
+    () => topCounts(filtered, (e) => (e.city ? `${e.city}, ${e.state}` : ""), 12),
+    [filtered]
+  );
 
   const sorted = useMemo(() => {
     const { key, dir } = sort;
@@ -424,7 +500,8 @@ function App() {
 
       <div className="deck">
         <div className="chart-stack">
-          <BarChart title="Top 15 states by helicopter count" data={stateData} selected={stateSel} onSelect={setStateSel} />
+          <HeatMap counts={heatCounts} selected={stateSel} onSelect={setStateSel} />
+          <BarChart title={stateSel ? `Top locations in ${stateSel}` : "Top locations (city, state)"} data={cityData} selected="" onSelect={(v) => setQuery(v ? v.split(",")[0] : "")} labelW={150} truncate={20} />
           <BarChart title="Top 12 manufacturers" data={mfrData} selected={mfrSel} onSelect={setMfrSel} labelW={130} truncate={18} />
         </div>
 

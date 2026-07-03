@@ -205,3 +205,10 @@ h1 { font-size: 22px; letter-spacing: 0.28em; font-weight: 700; }
 .preset-x:hover { opacity: 1; }
 
 .chart-stack { display: flex; flex-direction: column; gap: 16px; }
+
+/* Heat map (US tile-grid cartogram) */
+.heat { stroke: var(--line); stroke-width: 1; transition: fill-opacity 0.15s; }
+.heat-sel { stroke: var(--amber); stroke-width: 2.5; }
+.heat-code { font-size: 9px; font-weight: 700; fill: var(--ink-2); pointer-events: none; }
+.heat-n { font-size: 8px; font-family: ui-monospace, monospace; fill: var(--ink-1); pointer-events: none; }
+.heat-badge { margin-left: 8px; font-size: 11px; font-weight: 700; color: var(--amber); font-variant-numeric: tabular-nums; }

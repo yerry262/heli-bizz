@@ -652,8 +652,9 @@ Auto-appended by scripts/find_contacts.py — new agencies are added at the end;
 - Address: C/O DR CHILSON, NORMAN, OK 730195004
 - Aircraft: 900UA, 909UA, 933UA, 934UA, 935UA, 936UA, 938UA, 939UA, 940UA, 944UA, 946UA, 952UA, 955UA, 963UA
 - Lookup: https://www.google.com/search?q=BOARD+OF+REGENTS+FOR+THE+UNIVERSITY+OF+OKLAHOMA+NORMAN+OK+phone+contact
-- Phone: _(fill in)_
-- Email: _(fill in)_
+- Phone: (405) 325-7231 (School of Aviation, 209 Max Westheimer Airport; Professional Pilot–Helicopter program since 2024)
+- Email: admissions@ou.edu
+- Website: https://www.ou.edu/ags/aviation/contact — source: ou.edu
 - Notes:
 
 ## BOARD OF REGENTS OF THE (NV)
@@ -3641,8 +3642,9 @@ Auto-appended by scripts/find_contacts.py — new agencies are added at the end;
 - Address: 12401 SE 320TH ST, AUBURN, WA 980923622
 - Aircraft: 286KS, 287BS, 365WG, 4454G, 585GR, 705GR, 782HG, 833MG, 833NR, 852QC, 852RK, 852SD, 853UW, 8646G, 865BK, 896WG, 948SS, 948TS, 948US, 948VS, 997QG
 - Lookup: https://www.google.com/search?q=GREEN+RIVER+COLLEGE+AUBURN+WA+phone+contact
-- Phone: _(fill in)_
-- Email: _(fill in)_
+- Phone: +1-253-288-3300 (Auburn Center, 1221 D St NE, Auburn WA)
+- Email: tahenry@greenriver.edu, gcomollo@greenriver.edu (aviation faculty/pilot advisors)
+- Website: https://www.greenriver.edu/students/academics/degrees-programs/aviation-tech.html — source: greenriver.edu
 - Notes:
 
 ## GREENE COUNTY CAREER CENTER (OH)
@@ -4028,8 +4030,9 @@ Auto-appended by scripts/find_contacts.py — new agencies are added at the end;
 - Address: ATTN: INVENTORY CONTROL, PASCAGOULA, MS 39568
 - Aircraft: 130JC, 1370J, 137KQ, 137TB, 1385J, 1386G, 282RR, 282ZR, 308QJ, 308RJ, 308SJ, 308TJ, 592JC, 876DJ, 917VY, 932QJ
 - Lookup: https://www.google.com/search?q=JACKSON+COUNTY+BOARD+OF+SUPERVISORS+PASCAGOULA+MS+phone+contact
-- Phone: _(fill in)_
-- Email: _(fill in)_
+- Phone: (228) 769-3089 (2915 Canty St, Pascagoula; County Administrator 228-769-3088)
+- Email: _(via co.jackson.ms.us contact page)_
+- Website: https://www.co.jackson.ms.us/142/Contact — source: co.jackson.ms.us
 - Notes:
 
 ## JACKSON COUNTY FIRE DISTRICT #3 (OR)
@@ -5712,8 +5715,9 @@ Auto-appended by scripts/find_contacts.py — new agencies are added at the end;
 - Address: 3601 N DUPONT HWY, NEW CASTLE, DE 197206315
 - Aircraft: 281AN, 466NC, 468NC, 469NC, 470NC, 471NC, 472NC, 473NC, 474NC, 475NC, 476NC, 477NC, 478NC, 479NC
 - Lookup: https://www.google.com/search?q=NEW+CASTLE+COUNTY+POLICE+DEPT+NEW+CASTLE+DE+phone+contact
-- Phone: _(fill in)_
-- Email: _(fill in)_
+- Phone: (302) 573-2800 (main — ask for aviation unit; no direct line published)
+- Email: _(via newcastlede.gov contact page)_
+- Website: https://www.newcastlede.gov/315/Contact-Information — source: newcastlede.gov
 - Notes:
 
 ## NEW CASTLE COUNTY POLICE DEPT (DE) (DE)
@@ -6613,8 +6617,9 @@ Auto-appended by scripts/find_contacts.py — new agencies are added at the end;
 - Address: C/O TIMOTHY BRAUCH, ROCHESTER, NY 146235604
 - Aircraft: 130WR, 289LR, 289TB, 471XR, 471YR, 814JR, 814KR, 814QC, 815RJ, 849RF, 876TT, 880UR, 913RN, 913SR, 913UA, 913VR, 913WR, 913XR, 913YN, 920KR, 920SR, 940DC
 - Lookup: https://www.google.com/search?q=ROCHESTER+INSTITUTE+OF+TECHNOLOGY+ROCHESTER+NY+phone+contact
-- Phone: _(fill in)_
-- Email: _(fill in)_
+- Phone: 585-475-2411 (RIT main; no dedicated helicopter program found — registry aircraft likely research/engineering)
+- Email: _(via rit.edu/contact)_
+- Website: https://www.rit.edu/contact — source: rit.edu
 - Notes:
 
 ## ROCKLAND COUNTY NEW YORK (NY)
@@ -7388,8 +7393,9 @@ Auto-appended by scripts/find_contacts.py — new agencies are added at the end;
 - Address: 2615 E AIR LN, PHOENIX, AZ 850342626
 - Aircraft: 290AZ, 291AZ, 292AZ, 293AZ, 295AZ, 296AZ, 297AZ, 298AZ, 299AZ, 460AZ, 461AZ, 462AZ, 463AZ, 464AZ, 465AZ, 466AZ, 467AZ, 469AZ, 480AZ, 481AZ, 482AZ, 483AZ, 484AZ, 485AZ, 486AZ, 487AZ, 488AZ, 489AZ, 540AZ, 541AZ, 542AZ, 543AZ, 544AZ, 545AZ, 546AZ, 547AZ, 548AZ, 549AZ, 58AZ, 602AZ, 630AZ, 631AZ, 632AZ, 633AZ, 634AZ, 635AZ, 650AZ, 651AZ, 911AZ
 - Lookup: https://www.google.com/search?q=STATE+OF+ARIZONA+PHOENIX+AZ+phone+contact
-- Phone: _(fill in)_
-- Email: _(fill in)_
+- Phone: 602-223-2535 (AZDPS Aviation Bureau — operates the state fleet; bases: Phoenix-Deer Valley, Tucson, Flagstaff, Kingman)
+- Email: _(via azdps.gov contact form)_
+- Website: https://www.azdps.gov/organization/aviation-services — source: azdps.gov
 - Notes:
 
 ## STATE OF ARIZONA DEPARTMENT OF PUBLIC SAFETY (AZ)

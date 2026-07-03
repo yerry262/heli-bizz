@@ -13,20 +13,26 @@ const faaUrl = (n) =>
 
 const CHIP_DEFS = [
   { id: "all", label: "All" },
+  { id: "ems", label: "★ EMS / Air-Medical" },
+  { id: "manned", label: "Manned only" },
   { id: "gov", label: "Government" },
   { id: "statelocal", label: "State / Local" },
   { id: "new", label: "New this run" },
   { id: "companies", label: "Companies" },
   { id: "individuals", label: "Individuals" },
+  { id: "drones", label: "Drones / UAS" },
 ];
 const COMPANY_CODES = new Set(["2", "3", "4", "7", "8", "9"]);
 
 function chipTest(chip, e) {
   switch (chip) {
+    case "ems": return e.is_ems === 1;
+    case "manned": return e.is_unmanned !== 1;
+    case "drones": return e.is_unmanned === 1;
     case "gov": return e.is_government === 1;
     case "statelocal": return e.is_state_local === 1;
     case "new": return !!e.is_new;
-    case "companies": return COMPANY_CODES.has(e.registrant_type_code);
+    case "companies": return COMPANY_CODES.has(e.registrant_type_code) && e.is_unmanned !== 1;
     case "individuals": return e.registrant_type_code === "1";
     default: return true;
   }
@@ -57,7 +63,8 @@ const COLS = [
 function exportCsv(rows) {
   const keys = ["n_number","serial","registrant_name","street","city","state","zip",
     "registrant_type","mfr","model","year_mfr","cert_issue_date","last_action_date",
-    "is_government","is_state_local","is_new","first_seen","last_seen","status"];
+    "is_ems","is_government","is_state_local","is_unmanned","seats","is_new",
+    "first_seen","last_seen","status"];
   const esc = (v) => {
     const s = v == null ? "" : String(v);
     return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
@@ -134,6 +141,9 @@ function Detail({ row, onClose }) {
     ["Registrant type", `${row.registrant_type} (${row.registrant_type_code})`],
     ["Manufacturer", row.mfr], ["Model", row.model], ["Year mfr", row.year_mfr],
     ["Cert issued", fmtDate(row.cert_issue_date)], ["Last action", fmtDate(row.last_action_date)],
+    ["EMS / air-medical", row.is_ems ? "Yes — helmet prospect" : "No"],
+    ["Unmanned (drone)", row.is_unmanned ? "Yes — no pilot" : "No"],
+    ["Seats", row.seats != null && row.seats >= 0 ? row.seats : "—"],
     ["Government", row.is_government ? "Yes" : "No"],
     ["State / local", row.is_state_local ? "Yes" : "No"],
     ["New this run", row.is_new ? "Yes" : "No"],
@@ -203,8 +213,10 @@ function VTable({ rows, sort, onSort, onRow }) {
                 <span style={{ width: COLS[0].w }} className="cell mono">N{r.n_number}{r.is_new ? <em className="new-dot" title="New this run" /> : null}</span>
                 <span style={{ width: COLS[1].w }} className="cell">
                   {r.registrant_name}
+                  {r.is_ems === 1 ? <i className="tag tag-ems">EMS</i> : null}
                   {r.is_government === 1 ? <i className="tag tag-gov">GOV</i> : null}
                   {r.is_state_local === 1 ? <i className="tag tag-sl">S/L</i> : null}
+                  {r.is_unmanned === 1 ? <i className="tag tag-uas">UAS</i> : null}
                 </span>
                 <span style={{ width: COLS[2].w }} className="cell">{r.city}</span>
                 <span style={{ width: COLS[3].w }} className="cell mono">{r.state}</span>
@@ -291,10 +303,21 @@ function App() {
   };
 
   useEffect(() => {
-    fetch("../data/entities.json")
-      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-      .then(setPayload)
-      .catch((e) => setErr(String(e)));
+    // Works in both layouts: local serve.py (page at /dashboard/, data at
+    // /data/) and GitHub Pages (dashboard flattened to site root, data at
+    // ./data/). Try same-level first, then the parent-level fallback.
+    const candidates = ["data/entities.json", "../data/entities.json"];
+    (async () => {
+      let lastErr = "not found";
+      for (const url of candidates) {
+        try {
+          const r = await fetch(url);
+          if (r.ok) { setPayload(await r.json()); return; }
+          lastErr = `HTTP ${r.status}`;
+        } catch (e) { lastErr = String(e); }
+      }
+      setErr(lastErr);
+    })();
   }, []);
   useEffect(() => {
     const onKey = (e) => e.key === "Escape" && setDetail(null);
@@ -306,7 +329,8 @@ function App() {
 
   const stats = useMemo(() => ({
     total: entities.length,
-    newRun: entities.filter((e) => e.is_new).length,
+    manned: entities.filter((e) => e.is_unmanned !== 1).length,
+    ems: entities.filter((e) => e.is_ems === 1).length,
     gov: entities.filter((e) => e.is_government === 1).length,
     stateLocal: entities.filter((e) => e.is_state_local === 1).length,
   }), [entities]);
@@ -392,8 +416,8 @@ function App() {
       </header>
 
       <section className="tiles">
-        <Tile label="Registered helicopters" value={stats.total} accent="t-amber" active={chip === "all" && !stateSel && !mfrSel && !query} onClick={() => { setChip("all"); setStateSel(""); setMfrSel(""); setQuery(""); }} />
-        <Tile label="New this run" value={stats.newRun} accent="t-teal" active={chip === "new"} onClick={() => setChip("new")} />
+        <Tile label="Registered rotorcraft" value={stats.total} sub={`${fmtNum(stats.manned)} manned · ${fmtNum(stats.total - stats.manned)} drones`} accent="t-amber" active={chip === "all" && !stateSel && !mfrSel && !query} onClick={() => { setChip("all"); setStateSel(""); setMfrSel(""); setQuery(""); }} />
+        <Tile label="★ EMS / Air-Medical" value={stats.ems} sub="premier helmet market" accent="t-teal" active={chip === "ems"} onClick={() => setChip("ems")} />
         <Tile label="Government" value={stats.gov} accent="t-blue" active={chip === "gov"} onClick={() => setChip("gov")} />
         <Tile label="State / local agencies" value={stats.stateLocal} accent="t-violet" active={chip === "statelocal"} onClick={() => setChip("statelocal")} />
       </section>

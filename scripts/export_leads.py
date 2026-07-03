@@ -54,7 +54,7 @@ def segment_of(e: dict) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--segment", default="all",
-                    choices=["all", "gov", "statelocal", "private", "individual"])
+                    choices=["all", "ems", "gov", "statelocal", "private", "individual"])
     ap.add_argument("--include-drones", action="store_true",
                     help="include unmanned rotorcraft (default: manned helicopters only — "
                          "drones have no pilot, so no helmet buyer)")
@@ -76,9 +76,11 @@ def main() -> int:
         o = ops.setdefault(key, {
             "operator": e["registrant_name"], "state": e["state"],
             "city": e["city"], "street": e["street"], "zip": e["zip"],
-            "segment": segment_of(e), "fleet": 0,
+            "segment": segment_of(e), "fleet": 0, "is_ems": False,
             "models": {}, "n_numbers": [],
         })
+        if e.get("is_ems") == 1:
+            o["is_ems"] = True
         o["fleet"] += 1
         o["n_numbers"].append(e["n_number"])
         mk = f"{e['mfr']} {e['model']}".strip()
@@ -86,12 +88,15 @@ def main() -> int:
 
     rows = []
     for key, o in ops.items():
-        if args.segment != "all" and o["segment"] != args.segment:
+        if args.segment == "ems" and not o["is_ems"]:
+            continue
+        if args.segment not in ("all", "ems") and o["segment"] != args.segment:
             continue
         c = contacts.get(key, {})
         top_models = ", ".join(k for k, _ in sorted(o["models"].items(), key=lambda x: -x[1])[:3])
         rows.append({
-            "operator": o["operator"], "segment": o["segment"], "fleet_size": o["fleet"],
+            "operator": o["operator"], "segment": o["segment"],
+            "is_ems": "yes" if o["is_ems"] else "", "fleet_size": o["fleet"],
             "city": o["city"], "state": o["state"], "zip": o["zip"], "street": o["street"],
             "phone": c.get("phone", ""), "email": c.get("email", ""),
             "website": c.get("website", "").split(" —")[0],
@@ -99,9 +104,10 @@ def main() -> int:
             "top_models": top_models,
             "sample_tail_numbers": " ".join("N" + n for n in o["n_numbers"][:5]),
         })
-    rows.sort(key=lambda r: -r["fleet_size"])
+    # EMS first (top prospects), then by fleet size.
+    rows.sort(key=lambda r: (r["is_ems"] != "yes", -r["fleet_size"]))
 
-    fields = ["operator", "segment", "fleet_size", "phone", "email", "website",
+    fields = ["operator", "segment", "is_ems", "fleet_size", "phone", "email", "website",
               "has_contact", "city", "state", "zip", "street", "top_models",
               "sample_tail_numbers"]
     with OUT.open("w", newline="") as f:

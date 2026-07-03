@@ -110,11 +110,19 @@ def _open_csv(zf: zipfile.ZipFile, name: str):
 
 
 def load_rotorcraft_ref(zf: zipfile.ZipFile) -> dict:
-    """Return {code: (mfr, model)} for ACFTREF rows with TYPE-ACFT == '6'."""
+    """Return {code: (mfr, model, seats)} for ACFTREF rows with TYPE-ACFT == '6'.
+
+    NO-SEATS (col 8) is the manned/unmanned discriminator: 0 seats == a drone/UAS
+    (ag-spray, delivery, survey rotorcraft) with no on-board pilot.
+    """
     ref = {}
     for row in _open_csv(zf, "ACFTREF.txt"):
-        if len(row) >= 4 and row[3] == "6":
-            ref[row[0]] = (row[1], row[2])
+        if len(row) >= 9 and row[3] == "6":
+            try:
+                seats = int(row[8])
+            except ValueError:
+                seats = -1  # unknown -> treat as manned (don't wrongly drop)
+            ref[row[0]] = (row[1], row[2], seats)
     return ref
 
 
@@ -128,7 +136,8 @@ def parse_master(zf: zipfile.ZipFile, ref: dict) -> dict:
         if row[18] != "6":
             continue
         code = row[2]
-        mfr, model = ref.get(code, ("", ""))
+        mfr, model, seats = ref.get(code, ("", "", -1))
+        is_unmanned = 1 if seats == 0 else 0
         rt_code = row[5]
         rt = REGISTRANT_TYPES.get(rt_code, "")
         name = row[6]
@@ -151,6 +160,8 @@ def parse_master(zf: zipfile.ZipFile, ref: dict) -> dict:
             "last_action_date": row[15],
             "is_government": is_gov,
             "is_state_local": is_state_local,
+            "seats": seats,
+            "is_unmanned": is_unmanned,
         }
     return entities
 
@@ -160,7 +171,7 @@ CREATE TABLE IF NOT EXISTS entities(
     n_number TEXT PRIMARY KEY, serial TEXT, registrant_name TEXT, street TEXT,
     city TEXT, state TEXT, zip TEXT, registrant_type_code TEXT, registrant_type TEXT,
     mfr TEXT, model TEXT, year_mfr TEXT, cert_issue_date TEXT, last_action_date TEXT,
-    is_government INTEGER, is_state_local INTEGER,
+    is_government INTEGER, is_state_local INTEGER, seats INTEGER, is_unmanned INTEGER,
     first_seen TEXT, last_seen TEXT, status TEXT DEFAULT 'active'
 );
 CREATE TABLE IF NOT EXISTS runs(
@@ -174,6 +185,12 @@ def update_db(db_path: str, entities: dict):
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
     conn = sqlite3.connect(db_path)
     conn.executescript(SCHEMA)
+    # Migrate older DBs that predate the seats/is_unmanned columns.
+    cols = {r[1] for r in conn.execute("PRAGMA table_info(entities)")}
+    if "seats" not in cols:
+        conn.execute("ALTER TABLE entities ADD COLUMN seats INTEGER")
+    if "is_unmanned" not in cols:
+        conn.execute("ALTER TABLE entities ADD COLUMN is_unmanned INTEGER")
     today = datetime.now(timezone.utc).date().isoformat()
 
     existing = {r[0]: r[1] for r in conn.execute("SELECT n_number, status FROM entities")}
@@ -184,24 +201,25 @@ def update_db(db_path: str, entities: dict):
                 """UPDATE entities SET serial=?, registrant_name=?, street=?, city=?, state=?,
                    zip=?, registrant_type_code=?, registrant_type=?, mfr=?, model=?, year_mfr=?,
                    cert_issue_date=?, last_action_date=?, is_government=?, is_state_local=?,
-                   last_seen=?, status='active' WHERE n_number=?""",
+                   seats=?, is_unmanned=?, last_seen=?, status='active' WHERE n_number=?""",
                 (e["serial"], e["registrant_name"], e["street"], e["city"], e["state"],
                  e["zip"], e["registrant_type_code"], e["registrant_type"], e["mfr"],
                  e["model"], e["year_mfr"], e["cert_issue_date"], e["last_action_date"],
-                 e["is_government"], e["is_state_local"], today, e["n_number"]))
+                 e["is_government"], e["is_state_local"], e["seats"], e["is_unmanned"],
+                 today, e["n_number"]))
         else:
             new_count += 1
             conn.execute(
                 """INSERT INTO entities(n_number, serial, registrant_name, street, city, state,
                    zip, registrant_type_code, registrant_type, mfr, model, year_mfr,
                    cert_issue_date, last_action_date, is_government, is_state_local,
-                   first_seen, last_seen, status)
-                   VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'active')""",
+                   seats, is_unmanned, first_seen, last_seen, status)
+                   VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'active')""",
                 (e["n_number"], e["serial"], e["registrant_name"], e["street"], e["city"],
                  e["state"], e["zip"], e["registrant_type_code"], e["registrant_type"],
                  e["mfr"], e["model"], e["year_mfr"], e["cert_issue_date"],
                  e["last_action_date"], e["is_government"], e["is_state_local"],
-                 today, today))
+                 e["seats"], e["is_unmanned"], today, today))
 
     # Mark rows no longer present in the file as removed (only newly-removed count)
     current = set(entities)

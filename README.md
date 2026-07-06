@@ -7,6 +7,14 @@ entities (sheriffs, police, counties, state universities) — and grows an appen
 list run over run: entities are added when first seen and marked removed when they
 drop out, never deleted.
 
+**🌐 Live Dashboard: [https://yerry262.github.io/heli-bizz/](https://yerry262.github.io/heli-bizz/)**
+
+## Tech Stack
+
+- **Python 3 (stdlib only)** — `urllib`, `zipfile`, `csv`, `sqlite3`, `json`; no pip installs
+- **SQLite** — append-only entity database
+- **Static HTML/JS dashboard** — served locally via `serve.py` or on GitHub Pages
+
 ## Quickstart
 
 ```bash
